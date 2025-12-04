@@ -63,7 +63,7 @@ char sequencial(int k, int *A, int N){
 char busca_binaria_aux (int k, int ordenado[], int N) {
     int procurado;
 
-    for (int i=0; i< N/2; i++) {
+    for (int i=0; i<N-1; i++) {
         procurado = ordenado[i]-k;
         if (busca_binaria(procurado, ordenado, N) == 'S') return 'S';
     }
