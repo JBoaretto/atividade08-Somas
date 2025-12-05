@@ -6,9 +6,15 @@
 #include <stdlib.h>
 
 char sequencial(int k, int *A, int N);
+char busca_binaria_aux (int k, int ordenado[], int N);
+char busca_binaria (int procurado, int vetor[], int fim);
+
+void mergesort(int vetor[], int tamVetor);
+void mergesort_rec(int vetor[], int aux[], int inicio, int fim);
+void merge(int vetor[], int aux[], int inicio, int meio, int fim);
+void insertionsort(int vetor[], int tam);
 
 int main(){
-    // Leitura de dados
     int N; 
     if(scanf("%d", &N) != 1) return 1;
 
@@ -19,16 +25,29 @@ int main(){
         scanf("%d", &A[i]);
     }
 
-    // Consultas
+    int *A_ordenado = (int *)malloc(N * sizeof(int));
+    if(A_ordenado == NULL){
+        free(A);
+        return 1;
+    }
+
+    for(int i = 0; i < N; i++){
+        A_ordenado[i] = A[i];
+    }
+
+    mergesort(A_ordenado, N);
+
     int M;
     if(scanf("%d", &M) != 1){
         free(A);
+        free(A_ordenado);
         return 1;
     }
 
     int *K = (int *)malloc(M * sizeof(int));
     if(K == NULL){
         free(A);
+        free(A_ordenado);
         return 1;
     }
 
@@ -36,21 +55,21 @@ int main(){
         scanf("%d", &K[i]);
     }
 
-    // Processamento e saída
     for (int i = 0; i < M; i++)
     {
-        printf("%c\n", sequencial(K[i], A, N));
+        printf("%c\n", busca_binaria_aux(K[i], A_ordenado, N));
     }
     
     free(A);
+    free(A_ordenado);
     free(K);
 
     return 0;
 }
 
 char sequencial(int k, int *A, int N){
-    for(int i = 0; i < (N - 1); i++){
-        for (int j = (i + 1); j < N; j++)
+    for(int i=0; i<(N-1); i++){
+        for (int j=(i+1); j<N; j++)
         {
             if(A[i] + A[j] == k){
                 return 'S';
@@ -64,7 +83,7 @@ char busca_binaria_aux (int k, int ordenado[], int N) {
     int procurado;
 
     for (int i=0; i<N-1; i++) {
-        procurado = ordenado[i]-k;
+        procurado = k-ordenado[i];
         if (busca_binaria(procurado, ordenado, N) == 'S') return 'S';
     }
 
@@ -72,25 +91,25 @@ char busca_binaria_aux (int k, int ordenado[], int N) {
 }
 
 char busca_binaria (int procurado, int vetor[], int fim) {
-    int meio = fim/2, inicio = 0;
+    int inicio = 0;
+    int meio;
 
-    while(inicio<fim) {
+    while(inicio <= fim-1) {
+        meio = (inicio + (fim-1))/2;
+
         if (vetor[meio] == procurado) {
-            return "S";
+            return 'S';
         }
 
-        if (procurado<vetor[meio]) {
-            fim = meio-1;
-            meio = (meio-1)/2;
+        if (procurado < vetor[meio]) {
+            fim = meio;
         }
         else {
             inicio = meio+1;
-            meio = (fim-inicio)/2;
         }
-
     }
 
-    return "N";
+    return 'N';
 }
 
 void mergesort(int vetor[], int tamVetor) {
@@ -104,8 +123,6 @@ void mergesort(int vetor[], int tamVetor) {
 }
 
 void mergesort_rec(int vetor[], int aux[], int inicio, int fim) {
-    // para vetores com menos de 25 elementos, utiliza insertionsort para diminuir o peso da recursao
-    // funciona tambem como uma forma complexa de caso base
     if ((fim-inicio)<25) {
         insertionsort(&vetor[inicio], fim-inicio + 1);
         return;
@@ -113,21 +130,18 @@ void mergesort_rec(int vetor[], int aux[], int inicio, int fim) {
 
     int meio = (inicio+fim)/2;
 
-    // dividir para conquistar
     mergesort_rec(vetor, aux, inicio, meio);
     mergesort_rec(vetor, aux, meio+1, fim);
 
-    // na volta da recursao, junta os subvetores ordenados ordenadamente
     merge(vetor, aux, inicio, meio, fim);
 }
 
 void merge(int vetor[], int aux[], int inicio, int meio, int fim) {
-    int i = inicio;    // indice do subvetor esquerdo
-    int j = meio+1;  // indice do subvetor direito
-    int k = inicio;    // indice do vetor ordenado (aux)
+    int i = inicio;
+    int j = meio+1;
+    int k = inicio;
 
-    // enquanto houver elementos nao analisados nos dois subvetores
-while(i<=meio && j<=fim) {
+    while(i<=meio && j<=fim) {
         if (vetor[i]<=vetor[j]) {
             aux[k] = vetor[i];
             i++;
@@ -139,7 +153,6 @@ while(i<=meio && j<=fim) {
         }
     }
 
-    // se sobrar algo de algum lado, copia tudo para o final do vetor ordenado
     while(i<=meio) {
         aux[k] = vetor[i];
         i++;
@@ -152,8 +165,19 @@ while(i<=meio && j<=fim) {
         k++;
     }
 
-    // copia o vetor auxiliar ordenado para o vetor principal
     for(i=inicio; i<=fim; i++) {
         vetor[i] = aux[i];
+    }
+}
+
+void insertionsort(int vetor[], int tam) {
+    for (int i=1; i<tam; i++) {
+        int chave = vetor[i];
+        int j = i-1;
+        while (j>=0 && vetor[j] > chave) {
+            vetor[j+1] = vetor[j];
+            j--;
+        }
+        vetor[j+1] = chave;
     }
 }
